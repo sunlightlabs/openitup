@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import requests
 import json
 import csv
+import re
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
@@ -95,17 +96,30 @@ class USDAInspectionReportScraper():
 
 		search_button = self.driver.find_element_by_xpath('//img[@src="/LPASearch/adf/images/cache/en/bBasicSearchWEIw.gif"]')
 		search_button.click()
-		eles = self.driver.find_elements_by_xpath("//img[@title='Click this button to show the details of this Inspection Report.']")
+		
+		if len(self.driver.find_elements_by_xpath("//select[@title='Select record set']")) > 0:
+			select_ele = self.driver.find_element_by_xpath("//select[@title='Select record set']/option[@value='all']")
+			num_of_entries = int(select_ele.text.replace('Show All ','').strip())
+			select_ele.click()
+			self.wait.until(lambda d: len(d.find_elements_by_xpath("//img[@title='Click this button to show the details of this Inspection Report.']")) == num_of_entries)
+
+		details_buttons = self.driver.find_elements_by_xpath("//img[@title='Click this button to show the details of this Inspection Report.']")
 		self.manifest_dict[str(num)] = []
 
-		if len(eles) == 0:
+		if len(details_buttons) == 0:
 			print "No elements present for id " + str(num)
 		else:
-			self._scrape_eles(num, eles)
+			self._scrape_eles(num, details_buttons)
 
-	def _scrape_eles(self, num, eles):
-		for x in range(0, len(eles)):
-			eles[x].click()
+# before we open the details button
+# check for existense of select element offering pagination/breadcrumb options
+# table.x2h td table td@attr=valign="middle" select.x6 option@attr=value="all"
+# need to search for second instance of table nested select listed above....first instance
+# is sorting select present in all
+
+	def _scrape_eles(self, num, details_buttons):
+		for x in range(0, len(details_buttons)):
+			details_buttons[x].click()
 
 			cert_num = self.driver.find_elements_by_xpath("//span[@title='Select to only show information on this USDA Certificate']")[x]
 			site_name = self.driver.find_elements_by_xpath("//td[@headers='resultview:_id293:_id394:_id473']")[x]
@@ -128,24 +142,59 @@ class USDAInspectionReportScraper():
 				'Inspection Site Name': site_name.text,
 				'Inspection Date': date.text,
 				'PNG Report Link': png.get_attribute('src'),
+				'INSP ID': re.search(r"request_id=\d+", png.get_attribute('src')).group(0).split("=")[1],
 				'Inventory Table': entry_list,
 				'PNG File': str(num) + '-' + str(x) + '.png'
 			})
 
-			# TODO get remaining fields specified in manifest_TODO.json
-
 			# download png file of report
 			c = requests.get(png.get_attribute('src'))
 			open(self.img_path + str(num) + '-' + str(x) + '.png', 'w').write(c.content)
+
+			# TODO get remaining fields specified in manifest_TODO.json
+			total_compliance_span = self.driver.find_elements_by_xpath("//span[@style='font-weight:bold;']")[(x*5)+4]
+			if total_compliance_span.text != '' and total_compliance_span.find_element_by_xpath('..').tag_name == 'a':
+				total_compliance_span.click()
+				self.wait.until(lambda d: len(d.find_elements_by_xpath("//img[@title='Click to hide Non-Compliances Table']")) != 0)
+				compliance_list = []
+				compliance_table = self.driver.find_elements_by_xpath("//table[@class='x2f']")[2]
+				compliance_entries = compliance_table.find_elements_by_xpath(".//td[@class='x2n x62']")
+				
+				for i in range(0, len(compliance_entries), 4):
+					compliance_entry = {
+						'Regulation Section Description': compliance_entries[i+1].text,
+						'Direct non-compliance': compliance_entries[i+2].text,
+						'Repeat non-compliance': compliance_entries[i+3].text
+					}
+
+					try:
+						compliance_entry['Regulation Section'] = compliance_entries[i].find_element_by_xpath('.//span').text,
+					except:
+						try:
+							compliance_entry['Regulation Section'] = compiance_entries[i].text
+						except:
+							compliance_entry['Regulation Section'] = 'Error 101'
+
+					try:
+						compliance_entry['CFRS_ID'] = compliance_entries[i].find_element_by_xpath('.//a').get_attribute('href').split('=')[1]
+					except:
+						compliance_entry['CFRS_ID'] = 'No CFRS'
+
+					compliance_list.append(compliance_entry)
+
+				self.manifest_dict[str(num)][-1]['NCI Table'] = compliance_list
+
+				self.driver.find_element_by_xpath("//img[@title='Click to hide Non-Compliances Table']").click()
+				self.wait.until(lambda d: len(d.find_elements_by_xpath("//img[@title='Click to hide Non-Compliances Table']")) == 0)
 
 			# hide details of current report
 			self.driver.find_element_by_xpath('//img[@title="Click this button to hide the details of this Inspection Report."]').click()
 			# wait until it's hidden
 			self.wait.until(lambda d: len(d.find_elements_by_xpath('//img[@title="Click this button to hide the details of this Inspection Report."]')) == 0)
 			# get detail buttons again
-			eles = self.driver.find_elements_by_xpath('//img[@title="Click this button to show the details of this Inspection Report."]')
+			details_buttons = self.driver.find_elements_by_xpath('//img[@title="Click this button to show the details of this Inspection Report."]')
 
 # start here
 if __name__ == "__main__":
-	usda = USDAInspectionReportScraper(start_id=2, end_id=2)#id_file='usda-certificate-status-active-2016-01-05.csv')
+	usda = USDAInspectionReportScraper(id_file='usda-certificate-status-active-2016-01-05.csv')
 	usda.scrape()
