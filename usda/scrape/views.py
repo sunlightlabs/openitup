@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from django.views.generic.list import ListView
+from scrape import models
 
-# Create your views here.
+
+class LicenseeCertListView(ListView):
+
+    model = models.LicenseeCert
+    queryset = models.LicenseeCert.objects.all().prefetch_related('address')

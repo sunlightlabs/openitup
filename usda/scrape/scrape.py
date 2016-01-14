@@ -76,12 +76,6 @@ class USDAInspectionReportScraper():
         else:
             self._scrape_eles(licensee, scrape, details_buttons)
 
-# before we open the details button
-# check for existense of select element offering pagination/breadcrumb options
-# table.x2h td table td@attr=valign="middle" select.x6 option@attr=value="all"
-# need to search for second instance of table nested select listed above....first instance
-# is sorting select present in all
-
     def _scrape_eles(self, licensee, scrape, details_buttons):
         for x in range(0, len(details_buttons)):
             details_buttons[x].click()
@@ -111,11 +105,11 @@ class USDAInspectionReportScraper():
                                                              animal_count=entries[i].text,
                                                              animal_name=entries[i+1].text,
                                                              animal_group_name=entries[i+2].text)
-
             # download png file of report
-            response = urlopen(png.get_attribute('src'))
-            io = BytesIO(response.read())
-            inspection_report.img_file.save("{0}.png".format(inspection_number), File(io))
+            if not inspection_report.img_file:
+                response = urlopen(png.get_attribute('src'))
+                io = BytesIO(response.read())
+                inspection_report.img_file.save("{0}.png".format(inspection_number), File(io))
 
             total_compliance_span = self.driver.find_elements_by_xpath("//span[@style='font-weight:bold;']")[(x*5)+4]
             if total_compliance_span.text != '' and total_compliance_span.find_element_by_xpath('..').tag_name == 'a':

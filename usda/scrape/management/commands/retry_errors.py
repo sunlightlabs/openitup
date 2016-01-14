@@ -1,7 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from scrape.scrape import USDAInspectionReportScraper
-from scrape.models import Licensee, LicenseeCert
-from address.models import Address
+from scrape.models import Scrape
 import csv
 import traceback
 from datetime import datetime
@@ -10,11 +8,15 @@ from datetime import datetime
 class Command(BaseCommand):
     help = 'Launches data import scripts'
 
-    def add_arguments(self, parser):
-        parser.add_argument('--file', type=str, dest='file', default=False)
-        parser.add_argument('--ids', type=lambda kv: kv.split(","), dest='ids', nargs='*', default=[])
-
     def handle(self, **options):
+        id_list = Scrape.objects.exclude(error='')
+        """
+            values_list('licensee',flat=True).distinct()
+
+
+
+
+
         if options.get('ids'):
             id_list = options['ids'][0]
         elif options.get('file'):
@@ -61,3 +63,5 @@ class Command(BaseCommand):
             raise ValueError
 
         USDAInspectionReportScraper(id_list).scrape()
+        """
+

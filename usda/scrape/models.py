@@ -1,9 +1,11 @@
 from django.db import models
 from address.models import AddressField
-from jsonfield import JSONField
 
 
 class Entity(models.Model):
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -21,13 +23,17 @@ class Entity(models.Model):
 
 class Licensee(Entity):
 
-    customer_id = models.IntegerField()
+    customer_id = models.BigIntegerField()
+
+    @property
+    def first_cert(self):
+        return self.cert.first()
 
 
 class LicenseeCert(Entity):
 
-    licensee = models.ForeignKey(Licensee, null=True)
-    cert_id = models.IntegerField()
+    licensee = models.ForeignKey(Licensee, related_name='certs', null=True)
+    cert_id = models.BigIntegerField()
     certificate = models.CharField(max_length=9)
     certificate_status = models.NullBooleanField()
     status_date = models.DateTimeField(null=True)
@@ -50,7 +56,7 @@ class InspectionReport(Entity):
     inspection_type = models.CharField(max_length=256)
     prepared_by = models.CharField(max_length=2048)
     prepared_by_title = models.CharField(max_length=512)
-    inspector_number = models.IntegerField(null=True)
+    inspector_number = models.BigIntegerField(null=True)
     text = models.TextField()
     img_link = models.URLField(max_length=1024)
     img_file = models.ImageField(upload_to='inspection_reports/')
@@ -72,7 +78,7 @@ class NonCompliance(Entity):
 
     inspection_report = models.ForeignKey(InspectionReport, null=True)
 
-    cfrs_id = models.IntegerField(null=True)
+    cfrs_id = models.BigIntegerField(null=True)
     regulation_section = models.CharField(max_length=128)
     description = models.CharField(max_length=2048)
     direct_non_compliance = models.NullBooleanField()

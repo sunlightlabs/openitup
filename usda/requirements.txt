@@ -5,3 +5,5 @@ django
 django-address
 jsonfield
 Pillow
+django-debug-toolbar
+django-extras
