@@ -1,5 +1,9 @@
 from django.db import models
 from address.models import AddressField
+import subprocess
+from django.conf import settings
+import os
+import jellyfish
 
 
 class Entity(models.Model):
@@ -62,7 +66,56 @@ class InspectionReport(Entity):
     img_file = models.ImageField(upload_to='inspection_reports/')
 
     def ocr_pdf_to_text(self):
-        raise NotImplementedError
+        img_file_path = os.path.join(settings.MEDIA_ROOT, self.img_file.url)
+        img_file_output_path = img_file_path.replace('.png', '-c.png')
+        print(img_file_output_path)
+        # pre-process image for OCR
+        cmd = 'convert {0} -crop 530x390+20+230 -scale 300% -colorspace gray -morphology erode Octagon:1' \
+              ' -black-threshold 60% -white-threshold 75%' \
+              ' {1}'.format(img_file_path, img_file_output_path)
+
+        process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE)
+        out, err = process.communicate()
+
+        # OCR with tesseract
+        cmd = 'tesseract ' + img_file_output_path + ' stdout ' + os.path.join(settings.BASE_DIR, 'config/tesseract/azdigitspunc')
+        process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE)
+        out, err = process.communicate()
+        text = out.decode('utf-8').split('\n')
+
+        print(text)
+
+        new_text = []
+
+        # Post process with Levenshtein
+        eng_words = [word.strip() for word in open(os.path.join(settings.MEDIA_ROOT, 'english_dict_20k.txt'), 'r')]
+        vocab = [word.strip() for word in open(os.path.join(settings.MEDIA_ROOT, 'vocabulary.txt'), 'r')]
+
+        for line in text:
+            new_line = []
+            for item in line.split():
+                tup = (item, None)
+                if item in vocab:
+                    tup = (item, 0)
+                else:
+                    for word in vocab:
+                        dist = jellyfish.levenshtein_distance(item, word)
+                        if tup[1] is None or dist <= tup[1]:
+                            tup = (word, dist)
+
+                    if item.lower() not in eng_words and not item.isdigit() and not item.isupper():
+                        for word in eng_words:
+                            dist = jellyfish.levenshtein_distance(item, word)
+                            if tup[1] is None or dist <= tup[1]:
+                                tup = (word, dist)
+                    else:
+                        tup = (item, 0)
+
+                new_line.append(tup[0])
+
+            new_text.append(new_line)
+
+        print('\n'.join([' '.join(line) for line in new_text]))
 
 
 class AnimalInventory(Entity):

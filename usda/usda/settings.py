@@ -12,13 +12,12 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 from django.conf import settings
-
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data/')
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -30,7 +29,6 @@ SECRET_KEY = '#$7#-9ayt(np&g8fm=1#6269082g@j21zh1)iqzqmz=5u$lawp'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -79,14 +77,19 @@ WSGI_APPLICATION = 'usda.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+try:
+    stream = open(os.path.join(BASE_DIR, 'config/databases.yml'), 'r')
+    DATABASE_CONFIG = yaml.load(stream)['test' if DEBUG else 'prod']
+except FileNotFoundError as e:
+    print(e)
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'openitup_usda',
-        'USER': 'crd',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'ENGINE': DATABASE_CONFIG['engine'],
+        'NAME': DATABASE_CONFIG['name'],
+        'USER': DATABASE_CONFIG['user'],
+        'HOST': DATABASE_CONFIG['host'],
+        'PORT': DATABASE_CONFIG['port'],
     }
 }
 

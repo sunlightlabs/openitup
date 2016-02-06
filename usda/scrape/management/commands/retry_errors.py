@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 class Command(BaseCommand):
-    help = 'Launches data import scripts'
+    help = 'Retries scrape errors'
 
     def handle(self, **options):
         id_list = Scrape.objects.exclude(error='')

@@ -1,0 +1,19 @@
+database:
+  test:
+    engine: "django.db.backends.postgresql"
+    name: "openitup_usda"
+    user: "crd"
+    host: "127.0.0.1"
+    port: "5432"
+  dev:
+    engine: "django.db.backends.postgresql"
+    name: "openitup_usda"
+    user: "crd"
+    host: "127.0.0.1"
+    port: "5432"
+  prod:
+    engine: "django.db.backends.postgresql"
+    name: "openitup_usda"
+    user: "crd"
+    host: "127.0.0.1"
+    port: "5432"

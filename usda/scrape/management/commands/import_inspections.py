@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from scrape.scrape import USDAInspectionReportScraper
+from scrape.scraper import USDAInspectionReportScraper
 from scrape.models import Licensee, LicenseeCert
 from address.models import Address
 import csv
