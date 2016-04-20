@@ -1,4 +1,7 @@
 ghostdriver.log
-.idea
+*.idea
 manifest.json
 .DS_Store
+__pycache__
+config/
+data/

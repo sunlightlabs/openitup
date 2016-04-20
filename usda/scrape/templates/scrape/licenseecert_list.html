@@ -1,28 +1,31 @@
-{% extends 'root.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-    {% for cert in licenseecert_list %}
-        <table>
-            <thead>
-                <tr>
-                    <td>Certificate ID</td>
-                    <td>Certificate</td>
-                    <td>Certificate Status</td>
-                    <td>Approved on Data</td>
-                    <td>Legal Name</td>
-                    <td>Address</td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ cert.cert_id }}</td>
-                    <td>{{ cert.certificate }}</td>
-                    <td>{{ cert.certificate_status }}</td>
-                    <td>{{ cert.status_date }}</td>
-                    <td>{{ cert.legal_name }}</td>
-                    <td>{{ cert.address }}</td>
-                </tr>
-            </tbody>
-        </table>
+    <table id='js-table' style="width:100%">
+    <thead>
+        <tr>
+            <td>Certificate ID</td>
+            <td>Certificate</td>
+            <td>Certificate Status</td>
+            <td>Approved on Data</td>
+            <td>Legal Name</td>
+            <td>Address</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for cert in object_list %}
+        <tr>
+            <td>{{ cert.cert_id }}</td>
+            <td>{{ cert.certificate }}</td>
+            <td>{{ cert.certificate_status }}</td>
+            <td>{{ cert.status_date }}</td>
+            <td>{{ cert.legal_name }}</td>
+            <td>{{ cert.address }}</td>
+        </tr>
     {% endfor %}
+    </tbody>
+    </table>
+    {% include 'snippets/_paginator.html' with paginator=paginator %}
+
 {% endblock %}
+

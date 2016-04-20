@@ -1,14 +1,13 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from scrape.scraper import USDAInspectionReportScraper
 from scrape.models import Licensee, LicenseeCert
-from address.models import Address
 import csv
 import traceback
 from datetime import datetime
 
 
 class Command(BaseCommand):
-    help = 'Launches data import scripts'
+    help = 'Loads all the licensees and begins scraping their inspection reports. Takes a long time.'
 
     def add_arguments(self, parser):
         parser.add_argument('--file', type=str, dest='file', default=False)

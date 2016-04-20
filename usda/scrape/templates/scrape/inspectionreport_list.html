@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <table id='js-table' style="width:100%">
+    <thead>
+        <tr>
+            <td>Site Name</td>
+            <td>Date</td>
+            <td>Type</td>
+            <td>Inspector Number</td>
+            <td>Prepared by Title</td>
+            <td>Prepared by</td>
+            <td>Text</td>
+            <td>Link to USDA</td>
+            <td>PDF Download</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for inspection in object_list %}
+        <tr>
+            <td>{{ inspection.inspection_site_name }}</td>
+            <td>{{ inspection.inspection_date }}</td>
+            <td>{{ inspection.inspection_type }}</td>
+            <td>{{ inspection.inspector_number }}</td>
+            <td>{{ inspection.prepared_by_title }}</td>
+            <td>{{ inspection.prepared_by }}</td>
+            <td>{{ inspection.text }}</td>
+            <td>{{ inspection.img_link }}</td>
+            <td>{{ inspection.img_file }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    {% include 'snippets/_paginator.html' with paginator=paginator %}
+
+{% endblock %}

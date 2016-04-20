@@ -1,0 +1,26 @@
+<!DOCTYPE html>{% load static %}
+<html>
+    <head lang="en">
+        {% include '_head.html' %}
+        <link rel="stylesheet" type="text/css" href="{% static "css/usda.css" %}" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11,b-1.1.2,b-print-1.1.2,cr-1.3.1,r-2.0.2,se-1.1.2/datatables.min.css"/>
+    </head>
+    <body>
+        <header>{% block header %}{% endblock %}</header>
+        <main style="width:1000px; margin-left:auto; margin-right:auto">{% block content %}{% endblock %}</main>
+        <footer>{% block footer %}{% endblock %}</footer>
+        <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11,b-1.1.2,b-print-1.1.2,cr-1.3.1,r-2.0.2,se-1.1.2/datatables.min.js"></script>
+        <script>
+    $(document).ready(function(){
+        $('#js-table').DataTable({
+            dom: 'Bfrtip',
+            paging: false,
+            autoWidth:true,
+            stripeClasses: [ 'strip1', 'strip2'],
+            buttons: ['copy', 'excel', 'pdf']
+        });
+}   );
+</script>
+    </body>
+</html>

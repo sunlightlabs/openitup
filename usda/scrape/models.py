@@ -68,8 +68,8 @@ class InspectionReport(Entity):
     def ocr_pdf_to_text(self):
         img_file_path = os.path.join(settings.MEDIA_ROOT, self.img_file.url)
         img_file_output_path = img_file_path.replace('.png', '-c.png')
-        print(img_file_output_path)
-        # pre-process image for OCR
+
+        # Pre-process image for OCR
         cmd = 'convert {0} -crop 530x390+20+230 -scale 300% -colorspace gray -morphology erode Octagon:1' \
               ' -black-threshold 60% -white-threshold 75%' \
               ' {1}'.format(img_file_path, img_file_output_path)
@@ -82,11 +82,9 @@ class InspectionReport(Entity):
         process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE)
         out, err = process.communicate()
         text = out.decode('utf-8').split('\n')
-
-        print(text)
-
         new_text = []
 
+        print(text)
         # Post process with Levenshtein
         eng_words = [word.strip() for word in open(os.path.join(settings.MEDIA_ROOT, 'english_dict_20k.txt'), 'r')]
         vocab = [word.strip() for word in open(os.path.join(settings.MEDIA_ROOT, 'vocabulary.txt'), 'r')]
@@ -115,7 +113,8 @@ class InspectionReport(Entity):
 
             new_text.append(new_line)
 
-        print('\n'.join([' '.join(line) for line in new_text]))
+        self.text = '\n'.join([' '.join(line) for line in new_text])
+        self.save()
 
 
 class AnimalInventory(Entity):

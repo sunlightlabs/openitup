@@ -6,6 +6,7 @@ from django.conf.urls import patterns, include, url
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.LicenseeCertListView.as_view(), name='licenseecert-list'),
+    url(r'^inspection_reports$', views.InspectionReportListView.as_view(), name='inspectionreport-list'),
 ]
 
 if settings.DEBUG:
